@@ -1,6 +1,11 @@
 name: Android
 on:
   workflow_dispatch:
+    inputs:
+      publish_preview:
+        description: Publish the current Android preview APKs and source archive
+        type: boolean
+        default: false
   push:
     branches: ['main']
     paths: ['android/**', '.github/workflows/android.yml']
@@ -37,3 +42,40 @@ jobs:
           path: android/app/build/outputs/apk/debug/*-debug.apk
           if-no-files-found: error
           retention-days: 14
+  release:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_preview
+    needs: apk
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: riff-android-debug
+          path: build-apks
+      - name: Prepare APKs, full source and checksums
+        run: |
+          mkdir -p release
+          cp build-apks/app-arm64-v8a-debug.apk release/riff-android.apk
+          cp build-apks/app-universal-debug.apk release/riff-android-universal.apk
+          git archive --format=zip --prefix=riff-android/ -o release/riff-project-source.zip HEAD
+          cd release
+          sha256sum riff-android.apk riff-android-universal.apk riff-project-source.zip > SHA256SUMS.txt
+      - name: Publish the Android preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: android-v1.0.0-preview
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --target "$GITHUB_SHA" \
+              --title 'Riff for Android 1.0 — Preview' \
+              --notes-file android/RELEASE_NOTES.md --prerelease --draft
+          fi
+          gh release upload "$RELEASE_TAG" release/riff-android.apk \
+            release/riff-android-universal.apk release/riff-project-source.zip \
+            release/SHA256SUMS.txt --clobber
+          gh release edit "$RELEASE_TAG" --target "$GITHUB_SHA" \
+            --title 'Riff for Android 1.0 — Preview' \
+            --notes-file android/RELEASE_NOTES.md --prerelease --draft=false

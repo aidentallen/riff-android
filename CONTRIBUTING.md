@@ -47,6 +47,13 @@ to the original upstream repository. Production Android releases need a private
 signing key; the preview APKs use a debug certificate. Never commit keystores,
 signing passwords, `.env` files or `local.properties`.
 
+To publish the current preview, open **Actions → Android → Run workflow**, choose
+`main` and check **Publish the current Android preview APKs and source archive**.
+After the build, lint and unit tests pass, the release job uploads the phone APK,
+universal APK, full project source archive and SHA-256 checksums, then publishes
+`android-v1.0.0-preview`. It refreshes that preview's assets; use a new version/tag
+for a distinct release. Update [release notes](android/RELEASE_NOTES.md) first.
+
 Keep generated APKs and build directories out of git. Attach installable builds
 and checksums to GitHub Releases instead. Android changes are GPL-3.0-or-later;
 the upstream desktop source retains its MIT license and attribution.

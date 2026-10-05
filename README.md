@@ -65,6 +65,8 @@ See the [feature comparison](android/README.md#features) for desktop differences
 
 **Requires Android 8.0 or newer.** This first release is a debug-signed preview for personal testing. It is not a Play Store build. [Release checksums](https://github.com/aidentallen/riff-android/releases/download/android-v1.0.0-preview/SHA256SUMS.txt) are provided alongside the downloads.
 
+Preview builds can use different debug certificates. Android may require uninstalling an earlier preview before installing a build from another source; export any audio you want to keep first.
+
 Imported and downloaded music lives in private app storage. Uninstalling Riff removes that library and its data; use **Export audio** or **Share audio** to save copies elsewhere.
 
 ## Build the Android app
